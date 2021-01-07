@@ -19,7 +19,15 @@
       </li>
       <li @click="menuClick('ip')">
         <i class="el-icon-edit"></i>
-        <span>输入信息</span>
+        <span>配置接口信息</span>
+      </li>
+      <li @click="menuClick('checkInt')">
+        <i class="el-icon-zoom-in"></i>
+        <span>查看接口信息</span>
+      </li>
+      <li @click="menuClick('checkRouter')">
+        <i class="el-icon-view"></i>
+        <span>查看路由表信息</span>
       </li>
     </ul>
   </div>

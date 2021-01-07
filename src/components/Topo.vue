@@ -68,20 +68,78 @@
           </g>
         </svg>
       </el-main>
+      <el-dialog
+        title="设置接口信息"
+        :visible.sync="setIntVisible"
+        width="540px">
+        <el-form ref="form" :model="form" label-width="100px"> 
+          <el-form-item label="接口类型">
+              <el-radio-group v-model="interfaceType">
+                  <el-radio label="f" name="interfaceType">快速以太网</el-radio>
+                  <el-radio label="s" name="interfaceType">串行接口</el-radio>
+              </el-radio-group>
+          </el-form-item>
+          <el-form-item label="第几个接口">
+              <el-radio-group v-model="interfaceId">
+                  <el-radio label="0" name="interfaceId">0</el-radio>
+                  <el-radio label="1" name="interfaceId">1</el-radio>
+              </el-radio-group>
+          </el-form-item>
+          <el-form-item label="ipAddress">
+              <el-input v-model="form.ipAddress" placeholder="请输入ipAddress"></el-input>
+          </el-form-item>
+          <el-form-item label="subnetMask">
+              <el-input v-model="form.subnetMask" placeholder="请输入subnetMask"></el-input>
+          </el-form-item>
+          <el-button type="primary" style="width:100%; height:40px;" @click="onSubmit">提交</el-button>
+        </el-form>
+      </el-dialog>
+
+      <el-dialog        
+        title="查看接口信息"
+        :visible.sync="checkIntVisible"
+        width="540px">
+        <div align="right">
+          <el-button icon="el-icon-search" style="height:40px;" @click="oncheckInt">查看</el-button>
+        </div>
+        <el-form ref="form" :model="checkIntForm" label-width="100px"> 
+          <el-form-item label="接口类型">
+              <el-radio-group v-model="checkIntForm.interfaceType">
+                  <el-radio label="f" name="interfaceType">快速以太网</el-radio>
+                  <el-radio label="s" name="interfaceType">串行接口</el-radio>
+              </el-radio-group>
+          </el-form-item>
+          <el-form-item label="第几个接口">
+              <el-radio-group v-model="checkIntForm.interfaceId">
+                  <el-radio label="0" name="interfaceId">0</el-radio>
+                  <el-radio label="1" name="interfaceId">1</el-radio>
+              </el-radio-group>
+          </el-form-item>
+        </el-form>
+        <el-card shadow="hover">
+          {{intInfo}}
+        </el-card>
+      </el-dialog>
+      <el-dialog        
+        title="路由表信息"
+        :visible.sync="checkRouterVisible"
+        width="540px">
+        <el-card shadow="hover">
+          {{routerInfo}}
+        </el-card>
+      </el-dialog>
     </el-container>
     <!-- <el-footer height="60px" style="border-top: 1px solid #CCC;">
       <a href="https://github.com/laddwong" class="address">项目地址</a>
     </el-footer> -->
   </el-container>
-</template>
 
+</template>
 <script>
 /* eslint-disable */
 import ContextMenu from './ContextMenu'
 import { MessageBox } from 'element-ui'
 import nodeData from '../data/nodeData'
-import defaultNodeData from '../data/defaultNodeData'
-import defaultLinkData from '../data/defaultLinkData'
 export default {
   name: 'Topo',
   components: {
@@ -91,8 +149,8 @@ export default {
     return {
       libraryList: {}, // 左侧节点库的节点数据
       typeList: [], // 节点分类
-      topoNodes: defaultNodeData, // topo图中的节点
-      topoLinks: defaultLinkData, // topo图中的连线
+      topoNodes: [], // topo图中的节点
+      topoLinks: [], // topo图中的连线
       connecting:{ // 显示正在连接的线条
         x1: 0,
         y1: 0,
@@ -102,7 +160,35 @@ export default {
       move: true, // 操作模式，默认为移动。可切换为连接模式
       position: {x: 0, y: 0}, // 右键菜单的位置
       showMenu: false, // 控制右键菜单的显示与否
-      indexOfMenu: null // 表示在哪个节点上点击了右键菜单
+      indexOfMenu: null, // 表示在哪个节点上点击了右键菜单
+      setIntVisible: false,
+      form: {
+          ipAddress: "",
+          subnetMask: ""
+      },
+      router: '',
+      interfaceType: '',
+      interfaceId: '',
+      // 命令数组
+      cmdArr: [
+          {
+              id: 1,
+              title: "配置单个路由器上指定接口的IP地址和子网掩码",
+              key: "router"
+          },
+      ],
+      // 选中命令
+      activeItem: "",
+      // 返回数据
+      resData: "",
+      checkIntForm: {
+          interfaceType: '',
+          interfaceId: ''
+      },
+      checkIntVisible: false,
+      intInfo: '',
+      routerInfo: '',
+      checkRouterVisible: false
     }
   },
   methods: {
@@ -197,15 +283,36 @@ export default {
           this.topoNodes[this.indexOfMenu].name = value
         })
       }
-        if (option === 'ip') {
-        MessageBox.prompt('请输入ip地址', '地址信息', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          inputPattern: /\S/,
-          inputErrorMessage: '不能为空'
-        }).then(({ value }) => {
-          this.topoNodes[this.indexOfMenu].name = value
-        })
+      //设置接口信息
+      if (option === 'ip') {
+          this.router = this.topoNodes[this.indexOfMenu].name
+          this.setIntVisible = true;
+        // MessageBox.prompt('请输入ip地址', '地址信息', {
+        //   confirmButtonText: '确定',
+        //   cancelButtonText: '取消',
+        //   inputPattern: /\S/,
+        //   inputErrorMessage: '不能为空'
+        // }).then(({ value }) => {
+        //   this.topoNodes[this.indexOfMenu].name = value
+        // })
+      }
+      //查看接口信息
+      if (option === 'checkInt') {
+        this.router = this.topoNodes[this.indexOfMenu].name
+        this.checkIntVisible = true
+      }
+      //查看路由表信息
+      if (option === 'checkRouter') {
+        this.router = this.topoNodes[this.indexOfMenu].name
+        var _this = this;
+          this.$axios
+              .get("http://127.0.0.1:8000/api/router/" + this.router)
+              .then(res => {
+                  this.resData = JSON.stringify(res.data);
+                  _this.routerInfo = JSON.stringify(res.data);
+                  console.log(this.resData);
+              });        
+        this.checkRouterVisible = true
       }
       // 删除功能
       if (option === 'delete') {
@@ -236,7 +343,6 @@ export default {
     },
     // 保存Topo
     saveTopo () {
-      console.log(this.$data)
       localStorage.topoNodes = JSON.stringify(this.topoNodes)
       localStorage.topoLinks = JSON.stringify(this.topoLinks)
       MessageBox('保存成功')
@@ -252,8 +358,32 @@ export default {
         this.topoNodes = []
         this.topoLinks = []
       })
+    },
+    onSubmit() {
+      var _this = this;
+        this.$axios
+            .patch("http://127.0.0.1:8000/api/router/" + this.router + '/' + this.interfaceType + '/' + this.interfaceId, {
+              "ipAddress": _this.form.ipAddress,
+              "subnetMask": _this.form.subnetMask
+            })
+            .then(res => {
+                this.resData = JSON.stringify(res.data);
+                console.log(this.resData);
+            });
+    },
+    oncheckInt() {
+      //console.log(this.router)
+      //console.log("http://127.0.0.1:8000/api/router/" + this.router + '/' + this.checkIntForm.interfaceType + '/' + this.checkIntForm.interfaceId)
+      var _this = this;
+        this.$axios
+            .get("http://127.0.0.1:8000/api/router/" + this.router + '/' + this.checkIntForm.interfaceType + '/' + this.checkIntForm.interfaceId)
+            .then(res => {
+                this.resData = JSON.stringify(res.data);
+                _this.intInfo = JSON.stringify(res.data);
+                console.log(this.resData);
+            });
     }
-  },
+    },
   computed: {
     // 动态计算节点间的连线
     lines () {
