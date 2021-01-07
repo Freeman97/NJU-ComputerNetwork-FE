@@ -140,6 +140,8 @@
 import ContextMenu from './ContextMenu'
 import { MessageBox } from 'element-ui'
 import nodeData from '../data/nodeData'
+import defaultNodeData from '../data/defaultNodeData'
+import defaultLinkData from '../data/defaultLinkData'
 export default {
   name: 'Topo',
   components: {
@@ -149,8 +151,8 @@ export default {
     return {
       libraryList: {}, // 左侧节点库的节点数据
       typeList: [], // 节点分类
-      topoNodes: [], // topo图中的节点
-      topoLinks: [], // topo图中的连线
+      topoNodes: defaultNodeData, // topo图中的节点
+      topoLinks: defaultLinkData, // topo图中的连线
       connecting:{ // 显示正在连接的线条
         x1: 0,
         y1: 0,
