@@ -2,7 +2,7 @@
   <el-container style="height: 100vh;">
     <!-- 页眉 -->
     <el-header class="header-container">
-      <h1 class="title">网络拓扑图</h1>
+      <h1 class="title">动态路由</h1>
     </el-header>
     <el-container style="height: 100%">
       <!-- 侧边节点库 -->
@@ -71,7 +71,8 @@
       <el-dialog
         title="设置接口信息"
         :visible.sync="setIntVisible"
-        width="540px">
+        width="540px"
+        @close="closeSetIntDialog">
         <el-form ref="form" :model="form" label-width="100px"> 
           <el-form-item label="接口类型">
               <el-radio-group v-model="interfaceType">
@@ -98,7 +99,8 @@
       <el-dialog        
         title="查看接口信息"
         :visible.sync="checkIntVisible"
-        width="540px">
+        width="540px"
+        @close="closeCheckIntDialog">
         <div align="right">
           <el-button icon="el-icon-search" style="height:40px;" @click="oncheckInt">查看</el-button>
         </div>
@@ -406,6 +408,10 @@ export default {
                 this.resData = JSON.stringify(res.data);
                 console.log(this.resData);
             });
+        _this.$message({
+          message: '接口已配置成功！',
+          type: 'success'
+        });
     },
     oncheckInt() {
       //console.log(this.router)
@@ -414,6 +420,10 @@ export default {
         this.$axios
             .get("http://127.0.0.1:8000/api/router/" + this.router + '/' + this.checkIntForm.interfaceType + '/' + this.checkIntForm.interfaceId)
             .then(res => {
+                _this.$message({
+                  message: '接口信息查询成功！',
+                  type: 'success'
+                });
                 this.resData = JSON.stringify(res.data);
                 _this.intInfo = res.data;
                 console.log(this.resData);
@@ -425,6 +435,10 @@ export default {
       this.$axios
         .patch("http://127.0.0.1:8000/api/router/" + this.router, { netList: [_this.calculateSubnet(row.ipAddress, row.subnetMask)] })
         .then(res => {
+          _this.$message({
+            message: 'RIP开启成功！',
+            type: 'success'
+          });
           console.log(res)
         })
     },
@@ -438,6 +452,16 @@ export default {
       }
       res += (parseInt(splitIP[3]) & parseInt(splitSubnetMask[3]))
       return res
+    },
+    // 关闭接口设置对话框清空表单
+    closeSetIntDialog(){
+      this.interfaceType = ''
+      this.interfaceId = ''
+      this.form.ipAddress = ''
+      this.form.subnetMask = ''
+    },
+    closeCheckIntDialog() {
+      this.intInfo = ''
     }
     },
   computed: {
