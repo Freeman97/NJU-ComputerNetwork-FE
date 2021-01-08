@@ -134,7 +134,6 @@
           <el-table-column prop="interface" label="接口"></el-table-column>
           <el-table-column prop="ipAddress" label="IP地址"></el-table-column>
           <el-table-column prop="subnetMask" label="子网掩码"></el-table-column>
-          <el-table-column prop="subnetInt" label="子网掩码位数"></el-table-column>
           <el-table-column prop="status" label="是否已启用"></el-table-column>
           <el-table-column label="开启RIP动态路由">
             <template slot-scope="scope">
@@ -422,8 +421,9 @@ export default {
     },
     handleEnableRIP(row) {
       var _this = this
+      console.log("subnet is :  " + _this.calculateSubnet(row.ipAddress, row.subnetMask))
       this.$axios
-        .patch("http://127.0.0.1:8000/api/router/" + this.router, [_this.calculateSubnet(row.ipAddress, row.subnetMask)])
+        .patch("http://127.0.0.1:8000/api/router/" + this.router, { netList: [_this.calculateSubnet(row.ipAddress, row.subnetMask)] })
         .then(res => {
           console.log(res)
         })
