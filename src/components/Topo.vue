@@ -91,7 +91,7 @@
           <el-form-item label="subnetMask">
               <el-input v-model="form.subnetMask" placeholder="请输入subnetMask"></el-input>
           </el-form-item>
-          <el-button type="primary" style="width:100%; height:40px;" @click="onSubmit">提交</el-button>
+          <el-button type="primary" style="width:100%; height:40px;" @click="onSetInt">提交</el-button>
         </el-form>
       </el-dialog>
 
@@ -117,16 +117,34 @@
           </el-form-item>
         </el-form>
         <el-card shadow="hover">
-          {{intInfo}}
+          IP地址: {{ intInfo.ipAddress }}, 子网掩码: {{ intInfo.subnetMask }}, 是否启用: {{ intInfo.status }}
         </el-card>
       </el-dialog>
       <el-dialog        
         title="路由表信息"
         :visible.sync="checkRouterVisible"
-        width="540px">
+        width="700px">
         <el-card shadow="hover">
-          {{routerInfo}}
+          <div style="white-space: pre-wrap;" v-html="wrapLineRouterInfo"></div>
         </el-card>
+      </el-dialog>
+      <!-- 启动RIP -->
+      <el-dialog title="启动RIP动态路由" :visible.sync="enableRIPVisible" width="540px">
+        <el-table :data="intListInfo" style="width:100%">
+          <el-table-column prop="interface" label="接口"></el-table-column>
+          <el-table-column prop="ipAddress" label="IP地址"></el-table-column>
+          <el-table-column prop="subnetMask" label="子网掩码"></el-table-column>
+          <el-table-column prop="subnetInt" label="子网掩码位数"></el-table-column>
+          <el-table-column prop="status" label="是否已启用"></el-table-column>
+          <el-table-column label="开启RIP动态路由">
+            <template slot-scope="scope">
+              <el-button @click="handleEnableRIP(scope.row)" type="text">启动</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-form ref="form" :model="enableRIPForm" label-width="100px">
+          <el-form-item></el-form-item>
+        </el-form>
       </el-dialog>
     </el-container>
     <!-- <el-footer height="60px" style="border-top: 1px solid #CCC;">
@@ -187,10 +205,15 @@ export default {
           interfaceType: '',
           interfaceId: ''
       },
+      enableRIPForm: {
+
+      },
       checkIntVisible: false,
       intInfo: '',
+      intListInfo: [],
       routerInfo: '',
-      checkRouterVisible: false
+      checkRouterVisible: false,
+      enableRIPVisible: false
     }
   },
   methods: {
@@ -311,10 +334,22 @@ export default {
               .get("http://127.0.0.1:8000/api/router/" + this.router)
               .then(res => {
                   this.resData = JSON.stringify(res.data);
-                  _this.routerInfo = JSON.stringify(res.data);
+                  _this.routerInfo = res.data;
                   console.log(this.resData);
               });        
         this.checkRouterVisible = true
+      }
+      // 开启RIP
+      if (option === 'enableRIP') {
+        this.router = this.topoNodes[this.indexOfMenu].name
+        var _this = this
+        this.$axios
+          .get("http://127.0.0.1:8000/api/router/" + this.router + "/interfaces")
+          .then(res => {
+            _this.intListInfo = res.data
+            console.log(res)
+          })
+        this.enableRIPVisible = true
       }
       // 删除功能
       if (option === 'delete') {
@@ -361,7 +396,7 @@ export default {
         this.topoLinks = []
       })
     },
-    onSubmit() {
+    onSetInt() {
       var _this = this;
         this.$axios
             .patch("http://127.0.0.1:8000/api/router/" + this.router + '/' + this.interfaceType + '/' + this.interfaceId, {
@@ -381,9 +416,28 @@ export default {
             .get("http://127.0.0.1:8000/api/router/" + this.router + '/' + this.checkIntForm.interfaceType + '/' + this.checkIntForm.interfaceId)
             .then(res => {
                 this.resData = JSON.stringify(res.data);
-                _this.intInfo = JSON.stringify(res.data);
+                _this.intInfo = res.data;
                 console.log(this.resData);
             });
+    },
+    handleEnableRIP(row) {
+      var _this = this
+      this.$axios
+        .patch("http://127.0.0.1:8000/api/router/" + this.router, [_this.calculateSubnet(row.ipAddress, row.subnetMask)])
+        .then(res => {
+          console.log(res)
+        })
+    },
+    calculateSubnet(ip, subnetMask) {
+      var splitIP = ip.split(".")
+      var splitSubnetMask = subnetMask.split(".")
+      var res = ''
+      for(var i = 0; i < 3; i++) {
+        res += (parseInt(splitIP[i]) & parseInt(splitSubnetMask[i]))
+        res += '.'
+      }
+      res += (parseInt(splitIP[3]) & parseInt(splitSubnetMask[3]))
+      return res
     }
     },
   computed: {
@@ -406,6 +460,10 @@ export default {
           endInterface: item.endInterface
         }
       })
+    },
+    wrapLineRouterInfo() {
+      console.log(this.routerInfo)
+      return this.routerInfo.replace(/\\r\\n/g, "<br/>")
     }
   },
   mounted () {

@@ -29,6 +29,10 @@
         <i class="el-icon-view"></i>
         <span>查看路由表信息</span>
       </li>
+      <li @click="menuClick('enableRIP')">
+        <i class="el-icon-view"></i>
+        <span>开启RIP动态路由</span>
+      </li>
     </ul>
   </div>
 </template>
