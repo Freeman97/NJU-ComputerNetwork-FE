@@ -37,6 +37,7 @@
         <div class="button-container">
           <el-button @click="saveTopo">保存拓扑</el-button>
           <el-button @click="clearTopo" type="danger">清空拓扑</el-button>
+          <el-button @click="sendPacket">控制路由器B发送数据包</el-button>
         </div>
         <!-- 画板 -->
         <svg 
@@ -147,6 +148,11 @@
           <el-form-item></el-form-item>
         </el-form>
       </el-dialog>
+      <el-dialog
+      :visible.sync="checkPacketVisible"
+      width="1000px">
+        <div style="" v-html="packetInfo"></div>
+      </el-dialog>
     </el-container>
     <!-- <el-footer height="60px" style="border-top: 1px solid #CCC;">
       <a href="https://github.com/laddwong" class="address">项目地址</a>
@@ -214,7 +220,9 @@ export default {
       intListInfo: [],
       routerInfo: '',
       checkRouterVisible: false,
-      enableRIPVisible: false
+      enableRIPVisible: false,
+      checkPacketVisible: false,
+      packetInfo: ''
     }
   },
   methods: {
@@ -462,6 +470,23 @@ export default {
     },
     closeCheckIntDialog() {
       this.intInfo = ''
+    },
+    sendPacket() {
+      var _this = this;
+      this.$axios
+        .post("http://127.0.0.1:8000/api/router/B/ippacket", {
+          ipAddress: "10.0.0.1",
+          filterSubnet: "10.0.0.0"
+        }).then(res => {
+          _this.$message({
+            message: '发送成功！',
+            type: 'success'
+          });
+          // this.text = res.data.replace(/\n/g, '<br>')
+          _this.packetInfo = res.data.replace(/\n/g, '<br>')
+          _this.checkPacketVisible = true
+          console.log(res.data)
+        })
     }
     },
   computed: {
