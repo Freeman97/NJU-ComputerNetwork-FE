@@ -6,11 +6,11 @@
     </el-header>
     <el-container style="height: 100%">
       <!-- 侧边节点库 -->
-      <el-aside class="aside">
+      <!-- <el-aside class="aside"> -->
         <!-- 侧栏菜单 -->
-        <el-menu>
+        <!-- <el-menu> -->
           <!-- 子菜单 -->
-          <el-submenu v-for="(type, index) in typeList" :key="type" :index="String(index)">
+          <!-- <el-submenu v-for="(type, index) in typeList" :key="type" :index="String(index)">
             <template slot="title">
               <i class="el-icon-s-grid"></i>
               <span>{{type}}</span>
@@ -26,17 +26,17 @@
                 </div>
               </el-menu-item>
             </el-menu-item-group>
-          </el-submenu>
-        </el-menu>
-      </el-aside>
+          </el-submenu> -->
+        <!-- </el-menu> -->
+      <!-- </el-aside> -->
       <!-- 拓扑画板 -->
       <el-main class="board-container">
         <!-- topo中的节点的右键菜单 -->
         <Context-Menu :position="position" v-if="showMenu" @menuClick="clickMenuItem" />
         <!-- 功能按键 -->
         <div class="button-container">
-          <el-button @click="saveTopo">保存拓扑</el-button>
-          <el-button @click="clearTopo" type="danger">清空拓扑</el-button>
+          <!-- <el-button @click="saveTopo">保存拓扑</el-button>
+          <el-button @click="clearTopo" type="danger">清空拓扑</el-button> -->
           <el-button @click="sendPacket">控制路由器B发送数据包</el-button>
         </div>
         <!-- 画板 -->
@@ -282,8 +282,10 @@ export default {
     // 显示topo图上的节点的右键菜单
     nodeMenu (index, e) {
       this.position = {x: e.offsetX, y: e.offsetY}
-      this.showMenu = true
       this.indexOfMenu = index
+      if(this.topoNodes[this.indexOfMenu].name != 'Switch' && this.topoNodes[this.indexOfMenu].name != 'Server') {
+        this.showMenu = true
+      }
     },
     // 执行右键菜单的功能
     clickMenuItem (option) {

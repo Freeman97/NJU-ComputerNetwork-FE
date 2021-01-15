@@ -5,18 +5,18 @@
   oncontextmenu="return false" 
    >
     <ul>
-      <li @click="menuClick('link')">
+      <!-- <li @click="menuClick('link')">
         <i class="el-icon-share"></i>
         <span>连接</span>
-      </li>
-      <li @click="menuClick('rename')">
+      </li> -->
+      <!-- <li @click="menuClick('rename')">
         <i class="el-icon-edit"></i>
         <span>重命名</span>
-      </li>
-      <li @click="menuClick('delete')">
+      </li> -->
+      <!-- <li @click="menuClick('delete')">
         <i class="el-icon-delete"></i>
         <span>删除节点</span>
-      </li>
+      </li> -->
       <li @click="menuClick('ip')">
         <i class="el-icon-edit"></i>
         <span>配置接口信息</span>
